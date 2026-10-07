@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Piezo Energy Harvesting Smart Dashboard — Real-Time IoT Energy Monitoring System" />
+  <title>⚡ Piezo Energy Harvesting Smart Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════
+     LOADING SCREEN
+═══════════════════════════════════════════════════ -->
+<div id="loading-screen">
+  <div class="loader-content">
+    <div class="loader-logo">
+      <div class="loader-icon"><i class="fa-solid fa-bolt-lightning"></i></div>
+      <div class="loader-rings">
+        <div class="ring ring-1"></div>
+        <div class="ring ring-2"></div>
+        <div class="ring ring-3"></div>
+      </div>
+    </div>
+    <div class="loader-text">
+      <h1 class="loader-title">PIEZO ENERGY</h1>
+      <p class="loader-subtitle">SMART HARVESTING DASHBOARD</p>
+    </div>
+    <div class="loader-progress-wrap">
+      <div class="loader-progress-bar">
+        <div class="loader-progress-fill" id="loader-fill"></div>
+      </div>
+      <span class="loader-pct" id="loader-pct">0%</span>
+    </div>
+    <div class="loader-status" id="loader-status">Initializing system...</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     COMMAND PALETTE
+═══════════════════════════════════════════════════ -->
+<div id="cmd-palette-overlay" class="hidden">
+  <div id="cmd-palette">
+    <div class="cmd-header">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input type="text" id="cmd-input" placeholder="Search pages, commands..." autocomplete="off" />
+      <kbd>ESC</kbd>
+    </div>
+    <div class="cmd-results" id="cmd-results"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     NOTIFICATION PANEL
+═══════════════════════════════════════════════════ -->
+<div id="notif-panel" class="hidden">
+  <div class="notif-header">
+    <span>Notifications</span>
+    <button id="notif-clear">Clear All</button>
+  </div>
+  <div id="notif-list"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     TOAST CONTAINER
+═══════════════════════════════════════════════════ -->
+<div id="toast-container"></div>
+
+<div id="profile-panel" class="profile-panel hidden" role="dialog" aria-modal="true">
+  <div class="profile-card glow-card">
+    <button id="profile-close" class="profile-close" type="button">×</button>
+    <div class="profile-avatar">PE</div>
+    <h3>Project Profile</h3>
+    <p>Smart Floor Tile Energy Prototype</p>
+    <div class="profile-grid">
+      <div><span>Floor Tile</span><b>4</b></div>
+      <div><span>Arrangement</span><b>2 × 2</b></div>
+      <div><span>Data mode</span><b id="profile-mode">Demo</b></div>
+      <div><span>Hardware</span><b id="profile-hardware">Not connected</b></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     MAIN APP
+═══════════════════════════════════════════════════ -->
+<div class="app" id="main-app">
+
+  <!-- ─── SIDEBAR ─── -->
+  <aside class="sidebar glass-sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon"><i class="fa-solid fa-bolt-lightning"></i></div>
+      <div class="brand-text">
+        <span class="brand-name">PIEZO</span>
+        <span class="brand-sub">ENERGY HUB</span>
+      </div>
+    </div>
+
+    <div class="sidebar-section-label">MAIN</div>
+    <nav class="sidebar-nav" id="sidebar-nav">
+      <a class="nav-item active" data-page="dashboard" href="#">
+        <span class="nav-icon"><i class="fa-solid fa-gauge-high"></i></span>
+        <span class="nav-label">Dashboard</span>
+        <span class="nav-badge live-badge">LIVE</span>
+      </a>
+      <a class="nav-item" data-page="live" href="#">
+        <span class="nav-icon"><i class="fa-solid fa-wave-square"></i></span>
+        <span class="nav-label">Live Monitoring</span>
+      </a>
+      <a class="nav-item" data-page="piezo" href="#">
+        <span class="nav-icon"><i class="fa-solid fa-circle-nodes"></i></span>
+        <span class="nav-label">Tile Monitoring</span>
+        <span class="nav-chip">4</span>
+      </a>
+      <a class="nav-item" data-page="energy" href="#">
+        <span class="nav-icon"><i class="fa-solid fa-battery-full"></i></span>
+        <span class="nav-label">Energy Storage</span>
+      </a>
+      <a class="nav-item" data-page="bridge" href="#">
+        <span class="nav-icon"><i class="fa-solid fa-sitemap"></i></span>
+        <span class="nav-label">Bridge Rectifier</span>
+      </a>
+
+      <div class="sidebar-section-label" style="margin-top:1rem;">ANALYTICS</div>
+      <a class="nav-item" data-page="performance" href="#">
+        <span class="nav-icon"><i class="fa-solid fa-chart-line"></i></span>
+        <span class="nav-label">Performance</span>
+      </a>
+      <a class="nav-item" data-page="analytics" href="#">
+        <span class="nav-icon"><i class="fa-solid fa-chart-bar"></i></span>
+        <span class="nav-label">Analytics</span>
+      </a>
+
+      <div class="sidebar-section-label" style="margin-top:1rem;">TOOLS</div>
+      <a class="nav-item" data-page="prototype" href="#">
+        <span class="nav-icon"><i class="fa-solid fa-flask"></i></span>
+        <span class="nav-label">Prototype</span>
+      </a>
+      <a class="nav-item" data-page="reports" href="#">
+        <span class="nav-icon"><i class="fa-solid fa-file-export"></i></span>
+        <span class="nav-label">Reports</span>
+      </a>
+      <a class="nav-item" data-page="settings" href="#">
+        <span class="nav-icon"><i class="fa-solid fa-gear"></i></span>
+        <span class="nav-label">Settings</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-status-row">
+        <span class="status-dot green"></span>
+        <span class="status-text" id="sb-data-mode">Demo Mode</span>
+      </div>
+      <div class="sidebar-status-row">
+        <span class="status-dot" id="sb-conn-dot"></span>
+        <span class="status-text" id="sb-conn-text">Disconnected</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ─── MAIN CONTENT ─── -->
+  <div class="main-wrap">
+
+    <!-- ─── TOP NAV ─── -->
+    <header class="topnav glass-panel">
+      <div class="topnav-left">
+        <button class="sidebar-toggle" id="sidebar-toggle"><i class="fa-solid fa-bars"></i></button>
+        <div class="topnav-logo">
+          <div class="topnav-logo-icon"><i class="fa-solid fa-bolt-lightning"></i></div>
+          <div>
+            <div class="topnav-title">PIEZO ENERGY</div>
+            <div class="topnav-sub">Harvesting Smart Dashboard</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="topnav-center">
+        <div class="search-wrap">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input type="text" class="search-input" id="nav-search" placeholder="Search… (⌘K)" readonly onclick="openCommandPalette()" />
+          <kbd class="search-kbd">⌘K</kbd>
+        </div>
+      </div>
+
+      <div class="topnav-right">
+        <!-- Data Source -->
+        <select id="data-source-select" class="data-source-sel">
+          <option value="demo">⚡ Demo Mode</option>
+          <option value="serial">🔌 ESP32 Serial</option>
+          <option value="wifi">📶 ESP32 WiFi</option>
+          <option value="manual">🎛️ Manual</option>
+        </select>
+
+        <!-- Battery -->
+        <div class="topnav-pill" title="System Battery">
+          <i class="fa-solid fa-battery-three-quarters text-emerald"></i>
+          <span id="nav-battery">78%</span>
+        </div>
+
+        <!-- Connection -->
+        <div class="topnav-pill" id="conn-pill">
+          <span class="status-dot" id="conn-dot"></span>
+          <span id="conn-text">Offline</span>
+        </div>
+
+        <!-- Time -->
+        <div class="topnav-pill topnav-time">
+          <i class="fa-regular fa-clock"></i>
+          <span id="nav-time">--:--:--</span>
+        </div>
+
+        <!-- Notifications -->
+        <button class="topnav-btn" id="notif-btn" title="Notifications">
+          <i class="fa-solid fa-bell"></i>
+          <span class="notif-badge" id="notif-count">3</span>
+        </button>
+
+        <!-- Theme -->
+        <button class="topnav-btn" id="theme-btn" title="Toggle Theme">
+          <i class="fa-solid fa-moon" id="theme-icon"></i>
+        </button>
+
+        <!-- Fullscreen -->
+        <button class="topnav-btn" id="fullscreen-btn" title="Fullscreen">
+          <i class="fa-solid fa-expand"></i>
+        </button>
+
+        <!-- Avatar -->
+        <button class="topnav-avatar" id="profile-btn" title="User Profile" type="button"><span>PE</span></button>
+      </div>
+    </header>
+
+    <!-- ─── PAGE CONTAINER ─── -->
+    <div class="page-container" id="page-container">
+
+      <!-- ════════════════════════════════════════════
+           PAGE: DASHBOARD
+      ════════════════════════════════════════════ -->
+      <div class="page active" id="page-dashboard">
+
+        <!-- Hero Card -->
+        <div class="hero-card glow-card animate-in">
+          <div class="hero-bg-mesh"></div>
+          <div class="hero-content">
+            <div class="hero-left">
+              <div class="hero-badge"><span class="pulse-dot"></span> LIVE SYSTEM</div>
+              <h1 class="hero-title">Eco Step AI</h1>
+              <p class="hero-sub">AI Integrated Footstep Energy Generation And Monitoring System Using Piezoelectric Transducer</p>
+              <div class="hero-stats-row">
+                <div class="hero-stat">
+                  <span class="hero-stat-label">Uptime</span>
+                  <span class="hero-stat-val" id="uptime-display">00:00:00</span>
+                </div>
+                <div class="hero-stat">
+                  <span class="hero-stat-label">Steps Today</span>
+                  <span class="hero-stat-val" id="steps-display">0</span>
+                </div>
+                <div class="hero-stat">
+                  <span class="hero-stat-label">Efficiency</span>
+                  <span class="hero-stat-val text-emerald" id="eff-display">0%</span>
+                </div>
+              </div>
+            </div>
+            <div class="hero-right">
+              <div class="hero-ring-wrap">
+                <svg class="hero-ring" viewBox="0 0 200 200">
+                  <circle class="ring-bg" cx="100" cy="100" r="85" />
+                  <circle class="ring-fill" id="hero-ring-fill" cx="100" cy="100" r="85"
+                    stroke-dasharray="534" stroke-dashoffset="534" />
+                  <text class="ring-label-val" id="hero-ring-val" x="100" y="95" text-anchor="middle">0%</text>
+                  <text class="ring-label-sub" x="100" y="115" text-anchor="middle">HEALTH</text>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4 Metric Cards -->
+        <div class="metric-grid">
+          <div class="metric-card glow-card animate-in" style="--delay:0.1s" data-metric="voltage">
+            <div class="metric-header">
+              <div class="metric-icon-wrap blue"><i class="fa-solid fa-bolt"></i></div>
+              <div class="metric-trend" id="v-trend"><i class="fa-solid fa-arrow-up"></i></div>
+            </div>
+            <div class="metric-label">Voltage</div>
+            <div class="metric-value"><span id="m-voltage">0.00</span><span class="metric-unit">V</span></div>
+            <div class="metric-sub">Current Voltage Output</div>
+            <canvas class="metric-sparkline" id="spark-voltage" width="200" height="50"></canvas>
+            <div class="metric-footer">
+              <span class="mf-item"><i class="fa-solid fa-arrow-up text-emerald"></i> Peak: <b id="v-peak">0.00V</b></span>
+              <span class="mf-item">Avg: <b id="v-avg">0.00V</b></span>
+            </div>
+          </div>
+
+          <div class="metric-card glow-card animate-in" style="--delay:0.2s" data-metric="current">
+            <div class="metric-header">
+              <div class="metric-icon-wrap emerald"><i class="fa-solid fa-wave-square"></i></div>
+              <div class="metric-trend" id="c-trend"><i class="fa-solid fa-arrow-up"></i></div>
+            </div>
+            <div class="metric-label">Current</div>
+            <div class="metric-value"><span id="m-current">0.00</span><span class="metric-unit">mA</span></div>
+            <div class="metric-sub">Current Output</div>
+            <canvas class="metric-sparkline" id="spark-current" width="200" height="50"></canvas>
+            <div class="metric-footer">
+              <span class="mf-item">Peak: <b id="c-peak">0.00mA</b></span>
+              <span class="mf-item">Avg: <b id="c-avg">0.00mA</b></span>
+            </div>
+          </div>
+
+          <div class="metric-card glow-card animate-in" style="--delay:0.3s" data-metric="power">
+            <div class="metric-header">
+              <div class="metric-icon-wrap amber"><i class="fa-solid fa-fire-flame-curved"></i></div>
+              <div class="metric-trend" id="p-trend"><i class="fa-solid fa-arrow-up"></i></div>
+            </div>
+            <div class="metric-label">Power</div>
+            <div class="metric-value"><span id="m-power">0.00</span><span class="metric-unit">mW</span></div>
+            <div class="metric-sub">Instantaneous Power</div>
+            <canvas class="metric-sparkline" id="spark-power" width="200" height="50"></canvas>
+            <div class="metric-footer">
+              <span class="mf-item">Peak: <b id="p-peak">0.00mW</b></span>
+              <span class="mf-item">Avg: <b id="p-avg">0.00mW</b></span>
+            </div>
+          </div>
+
+          <div class="metric-card glow-card animate-in" style="--delay:0.4s" data-metric="energy">
+            <div class="metric-header">
+              <div class="metric-icon-wrap purple"><i class="fa-solid fa-database"></i></div>
+              <div class="metric-trend" id="e-trend"><i class="fa-solid fa-arrow-up"></i></div>
+            </div>
+            <div class="metric-label">Energy Stored</div>
+            <div class="metric-value"><span id="m-energy">0.00</span><span class="metric-unit">J</span></div>
+            <div class="metric-sub">Total Accumulated Energy</div>
+            <canvas class="metric-sparkline" id="spark-energy" width="200" height="50"></canvas>
+            <div class="metric-footer">
+              <span class="mf-item">Capacitor: <b id="e-cap">0%</b></span>
+              <span class="mf-item">Rate: <b id="e-rate">0J/min</b></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts + Status Row -->
+        <div class="dash-row-2">
+          <!-- Main Chart -->
+          <div class="chart-card glow-card animate-in" style="--delay:0.5s">
+            <div class="card-header">
+              <div class="card-title"><i class="fa-solid fa-chart-area"></i> Live Signal vs Time</div>
+              <div class="chart-controls">
+                <button class="chart-btn active" data-window="60">1m</button>
+                <button class="chart-btn" data-window="300">5m</button>
+                <button class="chart-btn" data-window="3600">1h</button>
+              </div>
+            </div>
+            <canvas id="main-chart" height="200"></canvas>
+          </div>
+
+          <!-- Live System Status -->
+          <div class="status-card glow-card animate-in" style="--delay:0.6s">
+            <div class="card-header">
+              <div class="card-title"><i class="fa-solid fa-circle-check"></i> Live System Status</div>
+            </div>
+            <div class="status-list">
+              <div class="status-item">
+                <div class="status-item-left">
+                  <span class="status-dot green pulse-status"></span>
+                  <span class="status-name">Bridge Rectifier</span>
+                </div>
+                <span class="status-tag green">Working</span>
+              </div>
+              <div class="status-item">
+                <div class="status-item-left">
+                  <span class="status-dot" id="cap-dot"></span>
+                  <span class="status-name">Capacitor</span>
+                </div>
+                <span class="status-tag blue" id="cap-status-tag">Charging</span>
+              </div>
+              <div class="status-item">
+                <div class="status-item-left">
+                  <span class="status-dot" id="led-dot"></span>
+                  <span class="status-name">LED</span>
+                </div>
+                <span class="status-tag" id="led-status-tag">OFF</span>
+              </div>
+              <div class="status-item">
+                <div class="status-item-left">
+                  <span class="status-dot green"></span>
+                  <span class="status-name">Spring Suspension</span>
+                </div>
+                <span class="status-tag green">Healthy</span>
+              </div>
+              <div class="status-item">
+                <div class="status-item-left">
+                  <span class="status-dot green"></span>
+                  <span class="status-name">Foam Pad</span>
+                </div>
+                <span class="status-tag green">Installed</span>
+              </div>
+              <div class="status-item">
+                <div class="status-item-left">
+                  <span class="status-dot green"></span>
+                  <span class="status-name">Acrylic Sheet</span>
+                </div>
+                <span class="status-tag green">Suspended</span>
+              </div>
+              <div class="status-item">
+                <div class="status-item-left">
+                  <span class="status-dot green"></span>
+                  <span class="status-name">Bottom Plywood</span>
+                </div>
+                <span class="status-tag green">Stable</span>
+              </div>
+            </div>
+            <!-- Quick Simulate -->
+            <button class="btn-simulate-sm" id="btn-sim-quick">
+              <i class="fa-solid fa-shoe-prints"></i> Simulate Footstep
+            </button>
+          </div>
+        </div>
+
+        <!-- AI Insights -->
+        <div class="ai-card glow-card animate-in" style="--delay:0.7s">
+          <div class="card-header">
+            <div class="card-title"><i class="fa-solid fa-robot"></i> AI Insights</div>
+            <span class="ai-badge">SMART ANALYSIS</span>
+          </div>
+          <div class="ai-ticker" id="ai-ticker">
+            <div class="ai-ticker-inner" id="ai-ticker-inner"></div>
+          </div>
+          <div class="ai-grid" id="ai-grid"></div>
+        </div>
+
+      </div><!-- /page-dashboard -->
+
+      <!-- ════════════════════════════════════════════
+           PAGE: LIVE MONITORING
+      ════════════════════════════════════════════ -->
+      <div class="page" id="page-live">
+        <div class="page-header">
+          <h2 class="page-title"><i class="fa-solid fa-wave-square"></i> Live Monitoring</h2>
+          <div class="page-actions">
+            <button class="btn-ghost" id="live-pause-btn"><i class="fa-solid fa-pause"></i> Pause</button>
+            <button class="btn-primary" id="live-export-btn"><i class="fa-solid fa-download"></i> Export CSV</button>
+          </div>
+        </div>
+        <div class="live-charts-grid">
+          <div class="chart-card glow-card">
+            <div class="card-header"><div class="card-title">⚡ Voltage (V)</div></div>
+            <canvas id="live-voltage-chart" height="160"></canvas>
+          </div>
+          <div class="chart-card glow-card">
+            <div class="card-header"><div class="card-title">〜 Current (mA)</div></div>
+            <canvas id="live-current-chart" height="160"></canvas>
+          </div>
+          <div class="chart-card glow-card">
+            <div class="card-header"><div class="card-title">🔥 Power (mW)</div></div>
+            <canvas id="live-power-chart" height="160"></canvas>
+          </div>
+          <div class="chart-card glow-card">
+            <div class="card-header"><div class="card-title">🔋 Energy Stored (J)</div></div>
+            <canvas id="live-energy-chart" height="160"></canvas>
+          </div>
+          <div class="chart-card glow-card">
+            <div class="card-header"><div class="card-title">📊 Efficiency (%)</div></div>
+            <canvas id="live-eff-chart" height="160"></canvas>
+          </div>
+          <div class="chart-card glow-card">
+            <div class="card-header"><div class="card-title">📅 Daily Energy (J)</div></div>
+            <canvas id="live-daily-chart" height="160"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════
+           PAGE: PIEZO ARRAY
+      ════════════════════════════════════════════ -->
+      <div class="page" id="page-piezo">
+        <div class="page-header">
+          <div>
+            <h2 class="page-title"><i class="fa-solid fa-circle-nodes"></i> Tile Array</h2>
+            <p class="page-subtitle">Individual tile status, output and fault detection</p>
+          </div>
+        </div>
+
+        <!-- Fault Overview Stats -->
+        <div class="metric-grid tile-stats-row">
+          <div class="glow-card tile-stat-card">
+            <div class="metric-label">Total Tiles</div>
+            <div class="metric-value" id="tile-total-count">4</div>
+          </div>
+          <div class="glow-card tile-stat-card">
+            <div class="metric-label">Healthy</div>
+            <div class="metric-value text-emerald" id="healthy-count">4</div>
+          </div>
+          <div class="glow-card tile-stat-card">
+            <div class="metric-label">Needs Check</div>
+            <div class="metric-value text-amber" id="needs-check-count">0</div>
+          </div>
+          <div class="glow-card tile-stat-card">
+            <div class="metric-label">Faults</div>
+            <div class="metric-value text-danger" id="fault-count">0</div>
+          </div>
+        </div>
+
+        <!-- Individual Tile Status Cards -->
+        <div class="glow-card tile-status-card">
+          <div class="card-header">
+            <div class="card-title"><i class="fa-solid fa-table-cells"></i> Tile Status</div>
+            <div class="array-controls">
+              <button class="btn-ghost-sm" id="btn-demo-fault">Demo fault: Off</button>
+            </div>
+          </div>
+          <div class="tile-status-grid" id="tile-status-grid"></div>
+        </div>
+
+        <div class="tile-maintenance-grid">
+          <div class="glow-card tile-maintenance-card">
+            <div class="card-header">
+              <div class="card-title"><i class="fa-solid fa-heart-pulse"></i> Tile Health</div>
+              <span class="status-tag green" id="tile-health-summary">4/4 tiles healthy</span>
+            </div>
+            <div class="tile-maintenance-copy">
+              <span>Automatic monitoring checks output response, over-voltage, signal stability and ESP32 communication.</span>
+              <span class="text-sec">A fault identifies the exact tile requiring inspection.</span>
+            </div>
+          </div>
+          <div class="glow-card tile-maintenance-card">
+            <div class="card-header">
+              <div class="card-title"><i class="fa-solid fa-clock-rotate-left"></i> Fault & Maintenance Log</div>
+            </div>
+            <div id="tile-fault-log" class="tile-fault-log"><div class="tile-log-empty">No tile faults recorded.</div></div>
+          </div>
+        </div>
+
+        <div class="piezo-layout">
+          <!-- Specs -->
+          <div class="piezo-specs glow-card">
+            <div class="card-header"><div class="card-title">Tile Array Specifications</div></div>
+            <div class="spec-grid">
+              <div class="spec-item"><span class="spec-label">Total Tiles</span><span class="spec-val">4</span></div>
+              <div class="spec-item"><span class="spec-label">Material</span><span class="spec-val">PZT Ceramic</span></div>
+              <div class="spec-item"><span class="spec-label">Arrangement</span><span class="spec-val">Parallel</span></div>
+              <div class="spec-item"><span class="spec-label">Active</span><span class="spec-val text-emerald" id="active-count">0</span></div>
+            </div>
+            <div class="disc-legend">
+              <div class="legend-item"><span class="disc-mini active-disc"></span>Active Tiles</div>
+              <div class="legend-item"><span class="disc-mini idle-disc"></span>Idle Tiles</div>
+              <div class="legend-item"><span class="disc-mini fault-disc"></span>Faults</div>
+              <div class="legend-item"><span class="disc-mini standby-disc"></span>Standby Tiles</div>
+            </div>
+          </div>
+
+          <!-- Tile Grid -->
+          <div class="glow-card piezo-array-card">
+            <div class="card-header">
+              <div class="card-title">TILE ARRAY</div>
+              <div class="array-controls">
+                <button class="btn-ghost-sm" id="btn-activate-all">Activate All</button>
+                <button class="btn-ghost-sm" id="btn-reset-discs">Reset</button>
+              </div>
+            </div>
+            <div class="groups-container" id="disc-groups"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════
+           PAGE: ENERGY STORAGE
+      ════════════════════════════════════════════ -->
+      <div class="page" id="page-energy">
+        <div class="page-header">
+          <h2 class="page-title"><i class="fa-solid fa-battery-full"></i> Energy Storage</h2>
+        </div>
+        <div class="energy-layout">
+          <!-- Capacitor Gauge -->
+          <div class="glow-card energy-gauge-card">
+            <div class="card-header"><div class="card-title">Capacitor Charge Level</div></div>
+            <div class="cap-gauge-wrap">
+              <svg class="cap-gauge" viewBox="0 0 220 220">
+                <defs>
+                  <linearGradient id="capGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#3B82F6"/>
+                    <stop offset="100%" style="stop-color:#10B981"/>
+                  </linearGradient>
+                </defs>
+                <circle class="gauge-bg" cx="110" cy="110" r="95"/>
+                <circle class="gauge-fill" id="cap-gauge-fill" cx="110" cy="110" r="95"
+                  stroke="url(#capGrad)"
+                  stroke-dasharray="597" stroke-dashoffset="597"/>
+                <text class="gauge-pct" id="cap-pct-val" x="110" y="100" text-anchor="middle">0%</text>
+                <text class="gauge-sublabel" x="110" y="125" text-anchor="middle">CHARGED</text>
+                <text class="gauge-cap-v" id="cap-voltage-val" x="110" y="148" text-anchor="middle">0.00V</text>
+              </svg>
+            </div>
+            <div class="cap-details">
+              <div class="cap-detail-item">
+                <span class="cap-detail-label">Charging Speed</span>
+                <span class="cap-detail-val" id="cap-speed">Slow</span>
+              </div>
+              <div class="cap-detail-item">
+                <span class="cap-detail-label">ETA Full Charge</span>
+                <span class="cap-detail-val" id="cap-eta">--:--</span>
+              </div>
+              <div class="cap-detail-item">
+                <span class="cap-detail-label">Stored Energy</span>
+                <span class="cap-detail-val" id="cap-stored">0.00 J</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Battery Visual -->
+          <div class="glow-card battery-card">
+            <div class="card-header"><div class="card-title">Battery Status</div></div>
+            <div class="battery-visual-wrap">
+              <div class="battery-body" id="battery-body">
+                <div class="battery-nub"></div>
+                <div class="battery-fill-wrap">
+                  <div class="battery-fill" id="battery-fill" style="height:0%"></div>
+                </div>
+                <div class="battery-pct-inside" id="battery-pct-inside">0%</div>
+              </div>
+              <div class="battery-lightning" id="battery-lightning">
+                <i class="fa-solid fa-bolt-lightning"></i>
+              </div>
+            </div>
+            <div class="battery-stats">
+              <div class="batt-stat"><span>Current</span><b id="batt-v">0.00V</b></div>
+              <div class="batt-stat"><span>Status</span><b id="batt-status" class="text-emerald">Charging</b></div>
+            </div>
+          </div>
+
+          <!-- Energy Chart -->
+          <div class="glow-card energy-chart-card">
+            <div class="card-header"><div class="card-title">Energy Accumulation</div></div>
+            <canvas id="energy-accum-chart" height="200"></canvas>
+          </div>
+
+          <!-- Monthly Chart -->
+          <div class="glow-card">
+            <div class="card-header"><div class="card-title">Monthly Energy Harvest (J)</div></div>
+            <canvas id="monthly-chart" height="200"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════
+           PAGE: BRIDGE RECTIFIER
+      ════════════════════════════════════════════ -->
+      <div class="page" id="page-bridge">
+        <div class="page-header">
+          <h2 class="page-title"><i class="fa-solid fa-sitemap"></i> Bridge Rectifier — MB10S</h2>
+        </div>
+        <div class="bridge-layout">
+          <div class="glow-card bridge-diagram-card">
+            <div class="card-header"><div class="card-title">Rectifier Circuit</div></div>
+            <div class="bridge-circuit" id="bridge-circuit">
+              <svg class="bridge-svg" viewBox="0 0 500 300">
+                <!-- AC Input -->
+                <text class="bridge-label-text" x="30" y="80">AC Input</text>
+                <text class="bridge-label-text" x="30" y="220">AC Return</text>
+                <!-- Wires -->
+                <line class="bridge-wire" x1="80" y1="75" x2="160" y2="75"/>
+                <line class="bridge-wire" x1="80" y1="215" x2="160" y2="215"/>
+                <line class="bridge-wire" x1="340" y1="75" x2="420" y2="75"/>
+                <line class="bridge-wire" x1="340" y1="215" x2="420" y2="215"/>
+                <!-- Diodes (triangles) -->
+                <!-- D1 top-left -->
+                <polygon class="bridge-diode" id="d1" points="160,55 160,95 200,75" />
+                <line class="bridge-diode-bar" x1="200" y1="55" x2="200" y2="95"/>
+                <!-- D2 bottom-right -->
+                <polygon class="bridge-diode" id="d2" points="300,195 300,235 340,215" />
+                <line class="bridge-diode-bar" x1="340" y1="195" x2="340" y2="235"/>
+                <!-- D3 top-right (reverse) -->
+                <polygon class="bridge-diode" id="d3" points="340,55 300,75 340,95" />
+                <line class="bridge-diode-bar" x1="300" y1="55" x2="300" y2="95"/>
+                <!-- D4 bottom-left (reverse) -->
+                <polygon class="bridge-diode" id="d4" points="200,195 160,215 200,235" />
+                <line class="bridge-diode-bar" x1="160" y1="195" x2="160" y2="235"/>
+                <!-- Connect diodes -->
+                <line class="bridge-wire" x1="200" y1="75" x2="300" y2="75"/>
+                <line class="bridge-wire" x1="200" y1="215" x2="300" y2="215"/>
+                <line class="bridge-wire" x1="160" y1="95" x2="160" y2="195"/>
+                <line class="bridge-wire" x1="340" y1="95" x2="340" y2="195"/>
+                <!-- DC+ / DC- -->
+                <line class="bridge-wire-pos" x1="250" y1="75" x2="250" y2="45"/>
+                <line class="bridge-wire-neg" x1="250" y1="215" x2="250" y2="255"/>
+                <text class="bridge-pos-label" x="255" y="42">DC+</text>
+                <text class="bridge-neg-label" x="255" y="268">DC−</text>
+                <!-- Output Load: Capacitor symbol -->
+                <line class="bridge-wire-pos" x1="420" y1="75" x2="420" y2="130"/>
+                <line class="bridge-wire-neg" x1="420" y1="215" x2="420" y2="170"/>
+                <rect class="cap-plate" x="410" y="125" width="20" height="6"/>
+                <rect class="cap-plate cap-plate2" x="410" y="168" width="20" height="6"/>
+                <text class="bridge-label-text" x="445" y="155">Cap</text>
+                <!-- Status dots on diodes -->
+                <circle class="diode-status-dot" id="d1-dot" cx="180" cy="60" r="6"/>
+                <circle class="diode-status-dot" id="d2-dot" cx="320" cy="200" r="6"/>
+                <circle class="diode-status-dot" id="d3-dot" cx="320" cy="60" r="6"/>
+                <circle class="diode-status-dot" id="d4-dot" cx="180" cy="200" r="6"/>
+                <!-- MB10S label -->
+                <rect x="215" y="120" width="70" height="30" rx="6" fill="rgba(59,130,246,0.15)" stroke="rgba(59,130,246,0.5)"/>
+                <text x="250" y="140" text-anchor="middle" class="bridge-chip-text">MB10S</text>
+              </svg>
+            </div>
+          </div>
+          <div class="glow-card bridge-status-card">
+            <div class="card-header"><div class="card-title">Rectifier Status</div></div>
+            <div class="bridge-metrics">
+              <div class="bridge-metric"><span class="bm-label">Status</span><span class="bm-val text-emerald">Working ✓</span></div>
+              <div class="bridge-metric"><span class="bm-label">Input (AC)</span><span class="bm-val" id="br-ac-in">0.00 V</span></div>
+              <div class="bridge-metric"><span class="bm-label">Output (DC)</span><span class="bm-val" id="br-dc-out">0.00 V</span></div>
+              <div class="bridge-metric"><span class="bm-label">D1 Status</span><span class="bm-val text-emerald">Forward ✓</span></div>
+              <div class="bridge-metric"><span class="bm-label">D2 Status</span><span class="bm-val text-emerald">Forward ✓</span></div>
+              <div class="bridge-metric"><span class="bm-label">D3 Status</span><span class="bm-val text-emerald">Forward ✓</span></div>
+              <div class="bridge-metric"><span class="bm-label">D4 Status</span><span class="bm-val text-emerald">Forward ✓</span></div>
+              <div class="bridge-metric"><span class="bm-label">Forward Drop</span><span class="bm-val">0.7 V × 2</span></div>
+              <div class="bridge-metric"><span class="bm-label">Ripple Factor</span><span class="bm-val">0.482</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════
+           PAGE: PERFORMANCE
+      ════════════════════════════════════════════ -->
+      <div class="page" id="page-performance">
+        <div class="page-header">
+          <h2 class="page-title"><i class="fa-solid fa-chart-line"></i> Performance</h2>
+        </div>
+        <div class="perf-layout">
+          <div class="glow-card perf-efficiency-card">
+            <div class="card-header"><div class="card-title">Harvesting Efficiency</div></div>
+            <div class="eff-gauge-wrap">
+              <svg class="eff-gauge" viewBox="0 0 220 140">
+                <defs>
+                  <linearGradient id="effGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" style="stop-color:#EF4444"/>
+                    <stop offset="50%" style="stop-color:#F59E0B"/>
+                    <stop offset="100%" style="stop-color:#10B981"/>
+                  </linearGradient>
+                </defs>
+                <!-- Half-circle track -->
+                <path class="eff-track" d="M20,120 A90,90 0 0,1 200,120" fill="none" stroke-width="14" stroke-linecap="round"/>
+                <path class="eff-fill" id="eff-arc" d="M20,120 A90,90 0 0,1 200,120" fill="none" stroke="url(#effGrad)" stroke-width="14" stroke-linecap="round" stroke-dasharray="283" stroke-dashoffset="283"/>
+                <text class="eff-pct-text" id="eff-pct-text" x="110" y="110" text-anchor="middle">0%</text>
+                <text class="eff-label-text" x="110" y="128" text-anchor="middle">EFFICIENCY</text>
+              </svg>
+            </div>
+            <div class="perf-stats">
+              <div class="perf-stat"><span>System Health</span><b id="perf-health" class="text-emerald">0%</b></div>
+              <div class="perf-stat"><span>Active Tiles</span><b id="perf-discs">0/4</b></div>
+              <div class="perf-stat"><span>Conversion Rate</span><b id="perf-conv">0%</b></div>
+            </div>
+          </div>
+          <div class="glow-card perf-chart-card">
+            <div class="card-header"><div class="card-title">Daily Energy Harvest (J)</div></div>
+            <canvas id="perf-daily-chart" height="220"></canvas>
+          </div>
+          <div class="glow-card">
+            <div class="card-header"><div class="card-title">Component Health</div></div>
+            <div class="comp-health-list" id="comp-health-list"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════
+           PAGE: ANALYTICS
+      ════════════════════════════════════════════ -->
+      <div class="page" id="page-analytics">
+        <div class="page-header">
+          <h2 class="page-title"><i class="fa-solid fa-chart-bar"></i> Analytics</h2>
+        </div>
+        <div class="analytics-grid">
+          <div class="glow-card">
+            <div class="card-header"><div class="card-title">Weekly Energy Harvest</div></div>
+            <canvas id="anal-weekly" height="220"></canvas>
+          </div>
+          <div class="glow-card">
+            <div class="card-header"><div class="card-title">Monthly Comparison</div></div>
+            <canvas id="anal-monthly" height="220"></canvas>
+          </div>
+          <div class="glow-card">
+            <div class="card-header"><div class="card-title">Voltage Distribution</div></div>
+            <canvas id="anal-volt-dist" height="220"></canvas>
+          </div>
+          <div class="glow-card">
+            <div class="card-header"><div class="card-title">Power vs Efficiency</div></div>
+            <canvas id="anal-pwr-eff" height="220"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════
+           PAGE: PROTOTYPE / SIMULATION
+      ════════════════════════════════════════════ -->
+      <div class="page" id="page-prototype">
+        <div class="page-header">
+          <h2 class="page-title"><i class="fa-solid fa-flask"></i> Prototype Simulation</h2>
+        </div>
+        <div class="proto-layout">
+          <!-- Mechanical Structure -->
+          <div class="glow-card mech-card">
+            <div class="card-header"><div class="card-title">Mechanical Structure — Exploded View</div></div>
+            <div class="mech-explode" id="mech-explode">
+              <div class="mech-layer" id="layer-top" style="--ly:0">
+                <div class="mech-layer-body top-plate"></div>
+                <div class="mech-layer-label">Top Acrylic Plate</div>
+              </div>
+              <div class="mech-layer" id="layer-foam" style="--ly:1">
+                <div class="mech-layer-body foam-pad"></div>
+                <div class="mech-layer-label">Foam Pad</div>
+              </div>
+              <div class="mech-layer" id="layer-springs" style="--ly:2">
+                <div class="mech-layer-body springs-row">
+                  <div class="spring-coil"></div><div class="spring-coil"></div>
+                  <div class="spring-coil"></div><div class="spring-coil"></div>
+                </div>
+                <div class="mech-layer-label">Spring Suspension</div>
+              </div>
+              <div class="mech-layer" id="layer-piezo" style="--ly:3">
+                <div class="mech-layer-body piezo-row" id="piezo-sim-row">
+                  <!-- Tiles rendered by JS -->
+                </div>
+                <div class="mech-layer-label">Piezo Tiles (4× PZT)</div>
+              </div>
+              <div class="mech-layer" id="layer-tape" style="--ly:4">
+                <div class="mech-layer-body tape-layer"></div>
+                <div class="mech-layer-label">Double Side Tape</div>
+              </div>
+              <div class="mech-layer" id="layer-base" style="--ly:5">
+                <div class="mech-layer-body plywood-base"></div>
+                <div class="mech-layer-label">Bottom Plywood Base</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Simulation Panel -->
+          <div class="glow-card sim-panel-card">
+            <div class="card-header"><div class="card-title">Simulation Control</div></div>
+            <div class="sim-center">
+              <button class="btn-footstep" id="btn-footstep">
+                <div class="footstep-icon"><i class="fa-solid fa-shoe-prints"></i></div>
+                <span>Simulate Footstep</span>
+              </button>
+              <div class="sim-stats-grid">
+                <div class="sim-stat">
+                  <span class="sim-stat-label">Steps Simulated</span>
+                  <span class="sim-stat-val" id="sim-steps">0</span>
+                </div>
+                <div class="sim-stat">
+                  <span class="sim-stat-label">Energy Generated</span>
+                  <span class="sim-stat-val" id="sim-energy">0.00J</span>
+                </div>
+                <div class="sim-stat">
+                  <span class="sim-stat-label">LED Status</span>
+                  <span class="sim-stat-val" id="sim-led"><i class="fa-solid fa-circle"></i> OFF</span>
+                </div>
+                <div class="sim-stat">
+                  <span class="sim-stat-label">Capacitor</span>
+                  <span class="sim-stat-val" id="sim-cap">0%</span>
+                </div>
+              </div>
+              <!-- LED Visual -->
+              <div class="led-visual-wrap">
+                <div class="led-visual" id="led-visual">
+                  <div class="led-bulb" id="led-bulb"></div>
+                  <div class="led-glow" id="led-glow"></div>
+                </div>
+                <span class="led-label">STATUS LED</span>
+              </div>
+            </div>
+            <div class="sim-chart-wrap">
+              <div class="card-title" style="margin-bottom:0.5rem">Voltage Spike</div>
+              <canvas id="sim-spike-chart" height="120"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════
+           PAGE: REPORTS
+      ════════════════════════════════════════════ -->
+      <div class="page" id="page-reports">
+        <div class="page-header">
+          <h2 class="page-title"><i class="fa-solid fa-file-export"></i> Reports</h2>
+        </div>
+        <div class="reports-grid">
+          <div class="glow-card report-gen-card">
+            <div class="card-header"><div class="card-title">Generate Report</div></div>
+            <div class="report-types">
+              <label class="report-type-btn">
+                <input type="checkbox" checked /> Voltage Report
+              </label>
+              <label class="report-type-btn">
+                <input type="checkbox" checked /> Energy Report
+              </label>
+              <label class="report-type-btn">
+                <input type="checkbox" /> Power Analysis
+              </label>
+              <label class="report-type-btn">
+                <input type="checkbox" /> Efficiency Report
+              </label>
+            </div>
+            <div class="export-btns">
+              <button class="btn-export csv-btn" id="btn-csv"><i class="fa-solid fa-file-csv"></i> CSV Export</button>
+              <button class="btn-export pdf-btn" id="btn-pdf"><i class="fa-solid fa-file-pdf"></i> PDF Export</button>
+              <button class="btn-export xls-btn" id="btn-xls"><i class="fa-solid fa-file-excel"></i> Excel Export</button>
+            </div>
+          </div>
+
+          <div class="glow-card report-preview-card">
+            <div class="card-header"><div class="card-title">Report Preview</div></div>
+            <div class="report-preview" id="report-preview">
+              <div class="report-preview-header">
+                <h3>⚡ Piezo Energy Harvesting System</h3>
+                <p class="rp-sub">Generated: <span id="report-date"></span></p>
+              </div>
+              <table class="report-table" id="report-table">
+                <thead>
+                  <tr><th>Timestamp</th><th>Voltage (V)</th><th>Current (mA)</th><th>Power (mW)</th><th>Energy (J)</th></tr>
+                </thead>
+                <tbody id="report-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════════════════════════════════════
+           PAGE: SETTINGS
+      ════════════════════════════════════════════ -->
+      <div class="page" id="page-settings">
+        <div class="page-header">
+          <h2 class="page-title"><i class="fa-solid fa-gear"></i> Settings</h2>
+        </div>
+        <div class="settings-grid">
+          <div class="glow-card settings-card">
+            <div class="card-header"><div class="card-title">Appearance</div></div>
+            <div class="settings-list">
+              <div class="setting-row">
+                <div>
+                  <div class="setting-label">Theme</div>
+                  <div class="setting-desc">Dark / Light mode</div>
+                </div>
+                <div class="toggle-wrap">
+                  <button class="theme-toggle-btn" id="settings-theme-btn">
+                    <i class="fa-solid fa-moon" id="settings-theme-icon"></i> Dark Mode
+                  </button>
+                </div>
+              </div>
+              <div class="setting-row">
+                <div>
+                  <div class="setting-label">Animation Speed</div>
+                  <div class="setting-desc">Controls chart and UI animation speed</div>
+                </div>
+                <select class="setting-select" id="anim-speed">
+                  <option value="slow">Slow</option>
+                  <option value="normal" selected>Normal</option>
+                  <option value="fast">Fast</option>
+                  <option value="off">Off</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="glow-card settings-card">
+            <div class="card-header"><div class="card-title">Data & Sampling</div></div>
+            <div class="settings-list">
+              <div class="setting-row">
+                <div>
+                  <div class="setting-label">Sampling Rate</div>
+                  <div class="setting-desc">Data update interval</div>
+                </div>
+                <select class="setting-select" id="sampling-rate">
+                  <option value="500">500ms (Fast)</option>
+                  <option value="1000" selected>1000ms (Normal)</option>
+                  <option value="2000">2000ms (Slow)</option>
+                  <option value="5000">5000ms (Very Slow)</option>
+                </select>
+              </div>
+              <div class="setting-row">
+                <div>
+                  <div class="setting-label">History Window</div>
+                  <div class="setting-desc">Points to keep in chart history</div>
+                </div>
+                <select class="setting-select" id="history-window">
+                  <option value="30">30 points</option>
+                  <option value="60" selected>60 points</option>
+                  <option value="120">120 points</option>
+                  <option value="300">300 points</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="glow-card settings-card">
+            <div class="card-header"><div class="card-title">Calibration</div></div>
+            <div class="settings-list">
+              <div class="setting-row">
+                <div>
+                  <div class="setting-label">Voltage Offset</div>
+                  <div class="setting-desc">Calibration offset in Volts</div>
+                </div>
+                <input type="number" class="setting-input" id="v-offset" value="0.00" step="0.01" />
+              </div>
+              <div class="setting-row">
+                <div>
+                  <div class="setting-label">Current Offset (mA)</div>
+                  <div class="setting-desc">Current calibration offset</div>
+                </div>
+                <input type="number" class="setting-input" id="c-offset" value="0.00" step="0.01" />
+              </div>
+              <div class="setting-row">
+                <div>
+                  <div class="setting-label">Load Resistance (Ω)</div>
+                  <div class="setting-desc">Used for power calculation</div>
+                </div>
+                <input type="number" class="setting-input" id="load-r" value="330" step="10" />
+              </div>
+            </div>
+          </div>
+
+          <div class="glow-card settings-card">
+            <div class="card-header"><div class="card-title">Hardware Connection</div></div>
+            <div class="settings-list">
+              <div class="setting-row">
+                <div>
+                  <div class="setting-label">ESP32 WiFi IP</div>
+                  <div class="setting-desc">Local IP of ESP32 device</div>
+                </div>
+                <input type="text" class="setting-input" id="wifi-ip" value="192.168.1.100" placeholder="192.168.x.x" />
+              </div>
+              <div class="setting-row">
+                <div>
+                  <div class="setting-label">Baud Rate</div>
+                  <div class="setting-desc">Serial communication baud rate</div>
+                </div>
+                <select class="setting-select" id="baud-rate">
+                  <option value="9600">9600</option>
+                  <option value="115200" selected>115200 (default)</option>
+                </select>
+              </div>
+              <div class="setting-row">
+                <div><div class="setting-label">ESP32 Connection</div><div class="setting-desc">USB Serial or local WiFi API</div></div>
+                <div class="hardware-actions">
+                  <button class="btn-ghost-sm" id="btn-connect-serial" type="button">Serial</button>
+                  <button class="btn-ghost-sm" id="btn-connect-wifi" type="button">WiFi</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="glow-card settings-card settings-danger-card">
+            <div class="card-header"><div class="card-title" style="color:var(--danger)">Danger Zone</div></div>
+            <div class="settings-list">
+              <div class="setting-row">
+                <div>
+                  <div class="setting-label">Reset Dashboard</div>
+                  <div class="setting-desc">Clear all data and reset to defaults</div>
+                </div>
+                <button class="btn-danger" id="btn-reset">Reset</button>
+              </div>
+              <div class="setting-row">
+                <div>
+                  <div class="setting-label">Clear History</div>
+                  <div class="setting-desc">Remove all recorded data</div>
+                </div>
+                <button class="btn-danger" id="btn-clear-history">Clear</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /page-container -->
+  </div><!-- /main-wrap -->
+</div><!-- /app -->
+
+<!-- Floating Simulate Button -->
+<button class="fab" id="fab-simulate" title="Quick Footstep Simulate">
+  <i class="fa-solid fa-shoe-prints"></i>
+</button>
+
+<script src="app.js"></script>
+</body>
+</html>
